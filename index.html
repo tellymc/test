@@ -4,27 +4,96 @@
     <meta charset="UTF-8">
     <title>Command Generator</title>
     <style>
-        body { font-family: sans-serif; background: #222; color: #fff; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: #333; padding: 20px; border-radius: 8px; }
-        label { display: block; margin: 10px 0 5px; font-weight: bold; }
-        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 8px; box-sizing: border-box; background: #444; color: #fff; border: 1px solid #555; border-radius: 4px; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            /* Medium Blue to Lighter Blue Gradient */
+            background: linear-gradient(135deg, #2980b9 0%, #6dd5fa 100%); 
+            margin: 0; 
+            padding: 40px 20px; 
+            min-height: 100vh; 
+            box-sizing: border-box;
+        }
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            /* 50% Translucent White Box */
+            background: rgba(255, 255, 255, 0.5); 
+            /* Frosted glass blur effect */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #222; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        h2 { color: #111; margin-top: 0; border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 10px; }
+        h3 { color: #111; margin-bottom: 10px; }
+        label { display: block; margin: 15px 0 5px; font-weight: bold; color: #222; }
+        
+        input[type="text"], input[type="number"], select, textarea { 
+            width: 100%; 
+            padding: 10px; 
+            box-sizing: border-box; 
+            /* Keeping inputs solid white/gray so they pop against the translucent background */
+            background: #fdfdfd; 
+            color: #333; 
+            border: 1px solid #ccc; 
+            border-radius: 6px; 
+            font-family: inherit;
+            transition: border 0.3s, box-shadow 0.3s;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #2980b9;
+            box-shadow: 0 0 0 2px rgba(41, 128, 185, 0.3);
+        }
         textarea { height: 80px; resize: vertical; }
-        .checkbox-container { display: flex; align-items: center; margin: 15px 0; }
-        .checkbox-container input[type="checkbox"] { margin: 0 10px 0 0; width: auto; cursor: pointer; }
-        .checkbox-container label { margin: 0; font-weight: normal; cursor: pointer; }
-        .output-container { position: relative; margin-top: 20px; }
-        .output { background: #111; padding: 15px; border-radius: 4px; font-family: monospace; word-break: break-all; border: 1px solid #444; min-height: 50px; padding-bottom: 45px; }
-        .copy-btn { position: absolute; bottom: 10px; right: 10px; background: #555; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
-        .copy-btn:hover { background: #777; }
-        .note { font-size: 0.85em; color: #aaa; margin-top: -5px; margin-bottom: 8px; }
+        
+        .checkbox-container { display: flex; align-items: center; margin: 20px 0; }
+        .checkbox-container input[type="checkbox"] { margin: 0 10px 0 0; width: auto; cursor: pointer; transform: scale(1.2); }
+        .checkbox-container label { margin: 0; font-weight: bold; cursor: pointer; color: #222; }
+        
+        .output-container { position: relative; margin-top: 10px; }
+        .output { 
+            background: #1e1e1e; 
+            color: #d4d4d4; 
+            padding: 15px; 
+            border-radius: 6px; 
+            font-family: 'Courier New', Courier, monospace; 
+            word-break: break-all; 
+            border: 1px solid #111; 
+            min-height: 50px; 
+            padding-bottom: 50px; 
+        }
+        .copy-btn { 
+            position: absolute; 
+            bottom: 12px; 
+            right: 12px; 
+            background: #4CAF50; 
+            color: #fff; 
+            border: none; 
+            padding: 8px 16px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            transition: background 0.2s; 
+        }
+        .copy-btn:hover { background: #45a049; }
+        .note { font-size: 0.85em; color: #444; margin-top: -5px; margin-bottom: 8px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>Command Generator</h2>
+
+    <label for="playerName">Player Name</label>
+    <div class="note">Target selector (e.g., @p, @a) or an exact player name</div>
+    <input type="text" id="playerName" value="@p">
     
     <label for="item">Item Name</label>
+    <div class="note">The base Minecraft item ID</div>
     <input type="text" id="item" value="minecraft:diamond_sword">
 
     <label for="itemName">Custom Name</label>
@@ -59,9 +128,10 @@
 </div>
 
 <script>
-    const fields = ['item', 'itemName', 'itemLore', 'enchant', 'level', 'hideFlags'];
+    const fields = ['playerName', 'item', 'itemName', 'itemLore', 'enchant', 'level', 'hideFlags'];
     
     function generateCommand() {
+        const player = document.getElementById('playerName').value || '@p';
         const item = document.getElementById('item').value || 'minecraft:diamond_sword';
         const rawItemName = document.getElementById('itemName').value;
         const rawLoreLines = document.getElementById('itemLore').value.split('\n').filter(line => line.trim() !== '');
@@ -95,7 +165,7 @@
             nbtParts.push(`HideFlags:1`);
         }
 
-        const fullCommand = `/give @p ${item} 1 0 {${nbtParts.join(',')}}`;
+        const fullCommand = `/give ${player} ${item} 1 0 {${nbtParts.join(',')}}`;
         document.getElementById('commandOutput').innerText = fullCommand;
     }
 
