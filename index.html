@@ -56,7 +56,7 @@
             color: #AAAAAA;
             box-shadow: inset 0 0 0 2px rgba(17, 1, 17, 0.5), 0 10px 25px rgba(0,0,0,0.3);
             text-shadow: 2px 2px 0px #000;
-            white-space: pre; /* Keeps the spaces rigid and locked in */
+            white-space: pre; 
             width: max-content; 
             min-width: 250px;
         }
@@ -144,8 +144,315 @@
             </div>
             <div>
                 <label for="item">Item Name</label>
-                <div class="note">Base Item ID</div>
-                <input type="text" id="item" value="minecraft:paper">
+                <div class="note">Search or type Base ID</div>
+                <input type="text" id="item" value="paper" list="mc-items" placeholder="Type to search items...">
+                
+                <datalist id="mc-items">
+                    <option value="stone">Stone</option>
+                    <option value="grass">Grass Block</option>
+                    <option value="dirt">Dirt</option>
+                    <option value="cobblestone">Cobblestone</option>
+                    <option value="planks">Wood Planks</option>
+                    <option value="sapling">Sapling</option>
+                    <option value="bedrock">Bedrock</option>
+                    <option value="sand">Sand</option>
+                    <option value="gravel">Gravel</option>
+                    <option value="gold_ore">Gold Ore</option>
+                    <option value="iron_ore">Iron Ore</option>
+                    <option value="coal_ore">Coal Ore</option>
+                    <option value="log">Wood Log</option>
+                    <option value="leaves">Leaves</option>
+                    <option value="sponge">Sponge</option>
+                    <option value="glass">Glass</option>
+                    <option value="lapis_ore">Lapis Lazuli Ore</option>
+                    <option value="lapis_block">Lapis Lazuli Block</option>
+                    <option value="dispenser">Dispenser</option>
+                    <option value="sandstone">Sandstone</option>
+                    <option value="noteblock">Note Block</option>
+                    <option value="golden_rail">Powered Rail</option>
+                    <option value="detector_rail">Detector Rail</option>
+                    <option value="sticky_piston">Sticky Piston</option>
+                    <option value="web">Cobweb</option>
+                    <option value="tallgrass">Tall Grass</option>
+                    <option value="deadbush">Dead Bush</option>
+                    <option value="piston">Piston</option>
+                    <option value="wool">Wool</option>
+                    <option value="yellow_flower">Dandelion</option>
+                    <option value="red_flower">Poppy</option>
+                    <option value="brown_mushroom">Brown Mushroom</option>
+                    <option value="red_mushroom">Red Mushroom</option>
+                    <option value="gold_block">Block of Gold</option>
+                    <option value="iron_block">Block of Iron</option>
+                    <option value="stone_slab">Stone Slab</option>
+                    <option value="brick_block">Bricks</option>
+                    <option value="tnt">TNT</option>
+                    <option value="bookshelf">Bookshelf</option>
+                    <option value="mossy_cobblestone">Mossy Cobblestone</option>
+                    <option value="obsidian">Obsidian</option>
+                    <option value="torch">Torch</option>
+                    <option value="mob_spawner">Monster Spawner</option>
+                    <option value="oak_stairs">Oak Wood Stairs</option>
+                    <option value="chest">Chest</option>
+                    <option value="diamond_ore">Diamond Ore</option>
+                    <option value="diamond_block">Block of Diamond</option>
+                    <option value="crafting_table">Crafting Table</option>
+                    <option value="furnace">Furnace</option>
+                    <option value="ladder">Ladder</option>
+                    <option value="rail">Rail</option>
+                    <option value="stone_stairs">Cobblestone Stairs</option>
+                    <option value="lever">Lever</option>
+                    <option value="stone_pressure_plate">Stone Pressure Plate</option>
+                    <option value="iron_door">Iron Door</option>
+                    <option value="wooden_pressure_plate">Wooden Pressure Plate</option>
+                    <option value="redstone_ore">Redstone Ore</option>
+                    <option value="redstone_torch">Redstone Torch</option>
+                    <option value="stone_button">Stone Button</option>
+                    <option value="snow_layer">Snow</option>
+                    <option value="ice">Ice</option>
+                    <option value="snow">Snow Block</option>
+                    <option value="cactus">Cactus</option>
+                    <option value="clay">Clay</option>
+                    <option value="jukebox">Jukebox</option>
+                    <option value="fence">Oak Fence</option>
+                    <option value="pumpkin">Pumpkin</option>
+                    <option value="netherrack">Netherrack</option>
+                    <option value="soul_sand">Soul Sand</option>
+                    <option value="glowstone">Glowstone</option>
+                    <option value="lit_pumpkin">Jack o'Lantern</option>
+                    <option value="stained_glass">Stained Glass</option>
+                    <option value="trapdoor">Wooden Trapdoor</option>
+                    <option value="monster_egg">Monster Egg</option>
+                    <option value="stonebrick">Stone Bricks</option>
+                    <option value="brown_mushroom_block">Brown Mushroom Block</option>
+                    <option value="red_mushroom_block">Red Mushroom Block</option>
+                    <option value="iron_bars">Iron Bars</option>
+                    <option value="glass_pane">Glass Pane</option>
+                    <option value="melon_block">Melon</option>
+                    <option value="vine">Vines</option>
+                    <option value="fence_gate">Oak Fence Gate</option>
+                    <option value="brick_stairs">Brick Stairs</option>
+                    <option value="stone_brick_stairs">Stone Brick Stairs</option>
+                    <option value="mycelium">Mycelium</option>
+                    <option value="waterlily">Lily Pad</option>
+                    <option value="nether_brick">Nether Brick</option>
+                    <option value="nether_brick_fence">Nether Brick Fence</option>
+                    <option value="nether_brick_stairs">Nether Brick Stairs</option>
+                    <option value="enchanting_table">Enchantment Table</option>
+                    <option value="end_portal_frame">End Portal Frame</option>
+                    <option value="end_stone">End Stone</option>
+                    <option value="dragon_egg">Dragon Egg</option>
+                    <option value="redstone_lamp">Redstone Lamp</option>
+                    <option value="wooden_slab">Wood Slab</option>
+                    <option value="sandstone_stairs">Sandstone Stairs</option>
+                    <option value="emerald_ore">Emerald Ore</option>
+                    <option value="ender_chest">Ender Chest</option>
+                    <option value="tripwire_hook">Tripwire Hook</option>
+                    <option value="emerald_block">Block of Emerald</option>
+                    <option value="spruce_stairs">Spruce Wood Stairs</option>
+                    <option value="birch_stairs">Birch Wood Stairs</option>
+                    <option value="jungle_stairs">Jungle Wood Stairs</option>
+                    <option value="command_block">Command Block</option>
+                    <option value="beacon">Beacon</option>
+                    <option value="cobblestone_wall">Cobblestone Wall</option>
+                    <option value="wooden_button">Wooden Button</option>
+                    <option value="anvil">Anvil</option>
+                    <option value="trapped_chest">Trapped Chest</option>
+                    <option value="light_weighted_pressure_plate">Light Pressure Plate</option>
+                    <option value="heavy_weighted_pressure_plate">Heavy Pressure Plate</option>
+                    <option value="daylight_detector">Daylight Sensor</option>
+                    <option value="redstone_block">Block of Redstone</option>
+                    <option value="quartz_ore">Nether Quartz Ore</option>
+                    <option value="hopper">Hopper</option>
+                    <option value="quartz_block">Block of Quartz</option>
+                    <option value="quartz_stairs">Quartz Stairs</option>
+                    <option value="activator_rail">Activator Rail</option>
+                    <option value="dropper">Dropper</option>
+                    <option value="stained_hardened_clay">Stained Clay</option>
+                    <option value="stained_glass_pane">Stained Glass Pane</option>
+                    <option value="acacia_stairs">Acacia Wood Stairs</option>
+                    <option value="dark_oak_stairs">Dark Oak Wood Stairs</option>
+                    <option value="slime">Slime Block</option>
+                    <option value="barrier">Barrier</option>
+                    <option value="iron_trapdoor">Iron Trapdoor</option>
+                    <option value="prismarine">Prismarine</option>
+                    <option value="sea_lantern">Sea Lantern</option>
+                    <option value="hay_block">Hay Bale</option>
+                    <option value="carpet">Carpet</option>
+                    <option value="hard_clay">Hardened Clay</option>
+                    <option value="coal_block">Block of Coal</option>
+                    <option value="packed_ice">Packed Ice</option>
+                    <option value="red_sandstone">Red Sandstone</option>
+                    <option value="red_sandstone_stairs">Red Sandstone Stairs</option>
+                    
+                    <option value="iron_shovel">Iron Shovel</option>
+                    <option value="iron_pickaxe">Iron Pickaxe</option>
+                    <option value="iron_axe">Iron Axe</option>
+                    <option value="flint_and_steel">Flint and Steel</option>
+                    <option value="apple">Apple</option>
+                    <option value="bow">Bow</option>
+                    <option value="arrow">Arrow</option>
+                    <option value="coal">Coal</option>
+                    <option value="diamond">Diamond</option>
+                    <option value="iron_ingot">Iron Ingot</option>
+                    <option value="gold_ingot">Gold Ingot</option>
+                    <option value="iron_sword">Iron Sword</option>
+                    <option value="wooden_sword">Wooden Sword</option>
+                    <option value="wooden_shovel">Wooden Shovel</option>
+                    <option value="wooden_pickaxe">Wooden Pickaxe</option>
+                    <option value="wooden_axe">Wooden Axe</option>
+                    <option value="stone_sword">Stone Sword</option>
+                    <option value="stone_shovel">Stone Shovel</option>
+                    <option value="stone_pickaxe">Stone Pickaxe</option>
+                    <option value="stone_axe">Stone Axe</option>
+                    <option value="diamond_sword">Diamond Sword</option>
+                    <option value="diamond_shovel">Diamond Shovel</option>
+                    <option value="diamond_pickaxe">Diamond Pickaxe</option>
+                    <option value="diamond_axe">Diamond Axe</option>
+                    <option value="stick">Stick</option>
+                    <option value="bowl">Bowl</option>
+                    <option value="mushroom_stew">Mushroom Stew</option>
+                    <option value="golden_sword">Golden Sword</option>
+                    <option value="golden_shovel">Golden Shovel</option>
+                    <option value="golden_pickaxe">Golden Pickaxe</option>
+                    <option value="golden_axe">Golden Axe</option>
+                    <option value="string">String</option>
+                    <option value="feather">Feather</option>
+                    <option value="gunpowder">Gunpowder</option>
+                    <option value="wooden_hoe">Wooden Hoe</option>
+                    <option value="stone_hoe">Stone Hoe</option>
+                    <option value="iron_hoe">Iron Hoe</option>
+                    <option value="diamond_hoe">Diamond Hoe</option>
+                    <option value="golden_hoe">Golden Hoe</option>
+                    <option value="wheat_seeds">Seeds</option>
+                    <option value="wheat">Wheat</option>
+                    <option value="bread">Bread</option>
+                    <option value="leather_helmet">Leather Cap</option>
+                    <option value="leather_chestplate">Leather Tunic</option>
+                    <option value="leather_leggings">Leather Pants</option>
+                    <option value="leather_boots">Leather Boots</option>
+                    <option value="chainmail_helmet">Chainmail Helmet</option>
+                    <option value="chainmail_chestplate">Chainmail Chestplate</option>
+                    <option value="chainmail_leggings">Chainmail Leggings</option>
+                    <option value="chainmail_boots">Chainmail Boots</option>
+                    <option value="iron_helmet">Iron Helmet</option>
+                    <option value="iron_chestplate">Iron Chestplate</option>
+                    <option value="iron_leggings">Iron Leggings</option>
+                    <option value="iron_boots">Iron Boots</option>
+                    <option value="diamond_helmet">Diamond Helmet</option>
+                    <option value="diamond_chestplate">Diamond Chestplate</option>
+                    <option value="diamond_leggings">Diamond Leggings</option>
+                    <option value="diamond_boots">Diamond Boots</option>
+                    <option value="golden_helmet">Golden Helmet</option>
+                    <option value="golden_chestplate">Golden Chestplate</option>
+                    <option value="golden_leggings">Golden Leggings</option>
+                    <option value="golden_boots">Golden Boots</option>
+                    <option value="flint">Flint</option>
+                    <option value="porkchop">Raw Porkchop</option>
+                    <option value="cooked_porkchop">Cooked Porkchop</option>
+                    <option value="painting">Painting</option>
+                    <option value="golden_apple">Golden Apple</option>
+                    <option value="sign">Sign</option>
+                    <option value="bucket">Bucket</option>
+                    <option value="water_bucket">Water Bucket</option>
+                    <option value="lava_bucket">Lava Bucket</option>
+                    <option value="minecart">Minecart</option>
+                    <option value="saddle">Saddle</option>
+                    <option value="redstone">Redstone Dust</option>
+                    <option value="snowball">Snowball</option>
+                    <option value="boat">Boat</option>
+                    <option value="leather">Leather</option>
+                    <option value="milk_bucket">Milk Bucket</option>
+                    <option value="brick">Brick</option>
+                    <option value="clay_ball">Clay Ball</option>
+                    <option value="reeds">Sugar Canes</option>
+                    <option value="paper">Paper</option>
+                    <option value="book">Book</option>
+                    <option value="slime_ball">Slimeball</option>
+                    <option value="chest_minecart">Minecart with Chest</option>
+                    <option value="furnace_minecart">Minecart with Furnace</option>
+                    <option value="egg">Egg</option>
+                    <option value="compass">Compass</option>
+                    <option value="fishing_rod">Fishing Rod</option>
+                    <option value="clock">Clock</option>
+                    <option value="glowstone_dust">Glowstone Dust</option>
+                    <option value="fish">Raw Fish</option>
+                    <option value="cooked_fish">Cooked Fish</option>
+                    <option value="dye">Dye</option>
+                    <option value="bone">Bone</option>
+                    <option value="sugar">Sugar</option>
+                    <option value="cake">Cake</option>
+                    <option value="bed">Bed</option>
+                    <option value="repeater">Redstone Repeater</option>
+                    <option value="cookie">Cookie</option>
+                    <option value="filled_map">Map</option>
+                    <option value="shears">Shears</option>
+                    <option value="melon">Melon</option>
+                    <option value="pumpkin_seeds">Pumpkin Seeds</option>
+                    <option value="melon_seeds">Melon Seeds</option>
+                    <option value="beef">Raw Beef</option>
+                    <option value="cooked_beef">Steak</option>
+                    <option value="chicken">Raw Chicken</option>
+                    <option value="cooked_chicken">Cooked Chicken</option>
+                    <option value="rotten_flesh">Rotten Flesh</option>
+                    <option value="ender_pearl">Ender Pearl</option>
+                    <option value="blaze_rod">Blaze Rod</option>
+                    <option value="ghast_tear">Ghast Tear</option>
+                    <option value="gold_nugget">Gold Nugget</option>
+                    <option value="nether_wart">Nether Wart</option>
+                    <option value="potion">Potion</option>
+                    <option value="glass_bottle">Glass Bottle</option>
+                    <option value="spider_eye">Spider Eye</option>
+                    <option value="fermented_spider_eye">Fermented Spider Eye</option>
+                    <option value="blaze_powder">Blaze Powder</option>
+                    <option value="magma_cream">Magma Cream</option>
+                    <option value="brewing_stand">Brewing Stand</option>
+                    <option value="cauldron">Cauldron</option>
+                    <option value="ender_eye">Eye of Ender</option>
+                    <option value="speckled_melon">Glistering Melon</option>
+                    <option value="spawn_egg">Spawn Egg</option>
+                    <option value="experience_bottle">Bottle o' Enchanting</option>
+                    <option value="fire_charge">Fire Charge</option>
+                    <option value="writable_book">Book and Quill</option>
+                    <option value="written_book">Written Book</option>
+                    <option value="emerald">Emerald</option>
+                    <option value="item_frame">Item Frame</option>
+                    <option value="flower_pot">Flower Pot</option>
+                    <option value="carrot">Carrot</option>
+                    <option value="potato">Potato</option>
+                    <option value="baked_potato">Baked Potato</option>
+                    <option value="poisonous_potato">Poisonous Potato</option>
+                    <option value="map">Empty Map</option>
+                    <option value="golden_carrot">Golden Carrot</option>
+                    <option value="skull">Mob Head</option>
+                    <option value="carrot_on_a_stick">Carrot on a Stick</option>
+                    <option value="nether_star">Nether Star</option>
+                    <option value="pumpkin_pie">Pumpkin Pie</option>
+                    <option value="fireworks">Firework Rocket</option>
+                    <option value="firework_charge">Firework Star</option>
+                    <option value="enchanted_book">Enchanted Book</option>
+                    <option value="comparator">Redstone Comparator</option>
+                    <option value="netherbrick">Nether Brick</option>
+                    <option value="quartz">Nether Quartz</option>
+                    <option value="tnt_minecart">Minecart with TNT</option>
+                    <option value="hopper_minecart">Minecart with Hopper</option>
+                    <option value="prismarine_shard">Prismarine Shard</option>
+                    <option value="prismarine_crystals">Prismarine Crystals</option>
+                    <option value="rabbit">Raw Rabbit</option>
+                    <option value="cooked_rabbit">Cooked Rabbit</option>
+                    <option value="rabbit_stew">Rabbit Stew</option>
+                    <option value="rabbit_foot">Rabbit's Foot</option>
+                    <option value="rabbit_hide">Rabbit Hide</option>
+                    <option value="armor_stand">Armor Stand</option>
+                    <option value="iron_horse_armor">Iron Horse Armor</option>
+                    <option value="golden_horse_armor">Golden Horse Armor</option>
+                    <option value="diamond_horse_armor">Diamond Horse Armor</option>
+                    <option value="lead">Lead</option>
+                    <option value="name_tag">Name Tag</option>
+                    <option value="command_block_minecart">Minecart with Command Block</option>
+                    <option value="mutton">Raw Mutton</option>
+                    <option value="cooked_mutton">Cooked Mutton</option>
+                    <option value="banner">Banner</option>
+                </datalist>
             </div>
         </div>
 
@@ -218,7 +525,6 @@
         return text.replace(/&[0-9a-fk-or]/gi, '');
     }
 
-    // Mathematically exact Minecraft Font Pixel Widths
     function getMCPixelWidth(text) {
         const cleanText = stripColors(text);
         let width = 0;
@@ -278,7 +584,11 @@
 
     function generateCommand() {
         const player = document.getElementById('playerName').value || '@p';
-        const item = document.getElementById('item').value || 'minecraft:paper';
+        
+        // Grab the item value, auto-prepend "minecraft:" if it doesn't have a colon
+        let itemInput = document.getElementById('item').value.trim() || 'paper';
+        const item = itemInput.includes(':') ? itemInput : 'minecraft:' + itemInput;
+        
         const rawItemName = document.getElementById('itemName').value;
         const rawLoreLines = document.getElementById('itemLore').value.split('\n').filter(line => line.trim() !== '');
         
@@ -295,7 +605,6 @@
             let maxPixelWidth = 0;
             let longestLineIndex = 0;
             
-            // Find the true longest line
             rawLoreLines.forEach((line, index) => {
                 const w = getMCPixelWidth(line);
                 if (w > maxPixelWidth) {
@@ -304,17 +613,13 @@
                 }
             });
 
-            // Adjust the longest line to have an even pixel width (adds a space if needed to balance)
             if (maxPixelWidth % 2 !== 0) {
                 rawLoreLines[longestLineIndex] += ' ';
-                maxPixelWidth += 4; // A space is 4 pixels
+                maxPixelWidth += 4; 
             }
 
             const padLine = (line) => {
                 const lineWidth = getMCPixelWidth(line);
-                // EXACT MATH: (MaxWidth - LineWidth) / 2 to get left padding pixels.
-                // Divide by 4 because 1 Minecraft space = 4 pixels. 
-                // So dividing by 8 is mathematically perfect!
                 const spacesNeeded = Math.round((maxPixelWidth - lineWidth) / 8); 
                 const padding = ' '.repeat(Math.max(0, spacesNeeded));
                 
