@@ -106,7 +106,8 @@
 
     <label for="enchant">Enchantment</label>
     <select id="enchant">
-        <option value="16">Sharpness (ID: 16)</option>
+        <option value="">None</option>
+        <option value="16" selected>Sharpness (ID: 16)</option>
         <option value="19">Knockback (ID: 19)</option>
         <option value="20">Fire Aspect (ID: 20)</option>
         <option value="34">Unbreaking (ID: 34)</option>
@@ -164,8 +165,10 @@
             nbtParts.push(`display:{${displayParts.join(',')}}`);
         }
 
-        // Enchantments
-        nbtParts.push(`ench:[{id:${enchantId},lvl:${level}}]`);
+        // Enchantments (Only add if an enchantment is actually selected)
+        if (enchantId !== "") {
+            nbtParts.push(`ench:[{id:${enchantId},lvl:${level}}]`);
+        }
 
         // Hide Flags
         if (hideFlags) {
@@ -175,7 +178,10 @@
         // Determine if we need the slash
         const commandPrefix = useConsole ? "give" : "/give";
 
-        const fullCommand = `${commandPrefix} ${player} ${item} 1 0 {${nbtParts.join(',')}}`;
+        // Build the final command
+        let nbtString = nbtParts.length > 0 ? `{${nbtParts.join(',')}}` : "";
+        const fullCommand = `${commandPrefix} ${player} ${item} 1 0 ${nbtString}`.trim();
+        
         document.getElementById('commandOutput').innerText = fullCommand;
     }
 
