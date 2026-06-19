@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Command Generator</title>
+    <title>Chest NBT Generator</title>
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -43,6 +43,9 @@
             padding: 30px 0; 
             overflow-x: auto; 
             box-sizing: border-box;
+            /* MAKES THE PREVIEW STICKY AS YOU SCROLL */
+            position: sticky;
+            top: 20px;
         }
 
         .mc-tooltip {
@@ -126,6 +129,9 @@
             transition: background 0.2s; 
         }
         .btn:hover { background: #45a049; }
+        .btn-red { background: #e74c3c; }
+        .btn-red:hover { background: #c0392b; }
+
         .copy-btn { 
             position: absolute; 
             bottom: 12px; 
@@ -141,7 +147,77 @@
             margin-bottom: 25px;
             border: 1px dashed rgba(0,0,0,0.2);
         }
+        .import-section.green-theme {
+            background: rgba(46, 204, 113, 0.1);
+            border-color: rgba(46, 204, 113, 0.4);
+        }
         .import-section label { margin-top: 0; }
+
+        /* Chest Grid Styling */
+        .chest-wrapper {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .chest-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 40px);
+            gap: 2px;
+            background: #c6c6c6;
+            padding: 8px;
+            border-radius: 4px;
+            border: 2px solid #555;
+            border-right-color: #111;
+            border-bottom-color: #111;
+            box-shadow: inset 2px 2px #fff, inset -2px -2px #8b8b8b;
+        }
+        .chest-slot {
+            width: 40px; 
+            height: 40px;
+            background: #8b8b8b;
+            box-shadow: inset 2px 2px #373737, inset -2px -2px #FFF;
+            cursor: pointer; 
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .chest-slot:hover { background: #9b9b9b; }
+        .chest-slot.selected {
+            outline: 2px solid #ffff00;
+            outline-offset: -2px;
+            z-index: 3;
+        }
+        
+        /* Item Sprites inside the slots */
+        .chest-slot .item-icon {
+            width: 32px;
+            height: 32px;
+            image-rendering: pixelated; 
+            z-index: 2;
+            pointer-events: none;
+        }
+        .chest-slot .item-fallback {
+            position: absolute;
+            z-index: 1;
+            font-size: 14px;
+            font-weight: bold;
+            color: #ddd;
+            text-shadow: 1px 1px 0 #333;
+            text-transform: uppercase;
+            pointer-events: none;
+        }
+
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+            padding-bottom: 10px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .editor-header h3 { margin: 0; border-bottom: none; padding-bottom: 0; }
     </style>
 </head>
 <body>
@@ -149,15 +225,15 @@
 <div class="main-wrapper">
     <!-- GENERATOR SECTION -->
     <div class="container">
-        <h2>Command Generator</h2>
+        <h2>Chest NBT Generator</h2>
 
-        <!-- IMPORT COMMAND SECTION -->
-        <div class="import-section">
-            <label for="importCmd">Import Existing Command</label>
-            <div class="note">Paste a generated command here to edit it!</div>
+        <!-- IMPORT FULL CHEST SECTION -->
+        <div class="import-section green-theme">
+            <label for="importFullCmd">Import Full Chest Command</label>
+            <div class="note">Paste a full /give chest command here to load ALL slots! (Wipes current chest)</div>
             <div class="row">
-                <input type="text" id="importCmd" placeholder='e.g. /give @p paper 1 0 {display:{Name:"§bHi"}}'>
-                <button class="btn" onclick="importCommand()" style="flex: 0 0 auto;">Import</button>
+                <input type="text" id="importFullCmd" placeholder='e.g. /give @p chest 1 0 {BlockEntityTag:{Items:[...]}}'>
+                <button class="btn" onclick="importFullChest()" style="flex: 0 0 auto; background: #27ae60;">Import Chest</button>
             </div>
         </div>
 
@@ -168,11 +244,51 @@
                 <input type="text" id="playerName" value="@p">
             </div>
             <div>
-                <label for="item">Item Name</label>
-                <div class="note">Search or type Base ID</div>
-                <input type="text" id="item" value="paper" list="mc-items" placeholder="Type to search items...">
+                <label for="chestName">Chest Custom Name</label>
+                <div class="note">Colors allowed (e.g. &6Starter Kit)</div>
+                <input type="text" id="chestName" value="&6Starter Kit">
+            </div>
+            <div>
+                <label for="chestSize">Chest Size</label>
+                <div class="note">Small or Double</div>
+                <select id="chestSize" onchange="changeChestSize()">
+                    <option value="27" selected>Small Chest (27 Slots)</option>
+                    <option value="54">Double Chest (54 Slots)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- CHEST GRID INTERFACE -->
+        <div class="chest-wrapper">
+            <div class="chest-grid" id="chestGrid">
+                <!-- Slots injected by JS -->
+            </div>
+        </div>
+
+        <!-- SLOT EDITOR -->
+        <div class="editor-header">
+            <h3 id="editorTitle">Editing Slot 0</h3>
+            <button class="btn btn-red" onclick="clearSlot()">Clear Slot</button>
+        </div>
+
+        <!-- IMPORT SINGLE ITEM SECTION -->
+        <div class="import-section">
+            <label for="importCmd">Import Single Item into Slot <span id="importSlotLabel">0</span></label>
+            <div class="note">Paste a generated item command here to load it into this slot!</div>
+            <div class="row">
+                <input type="text" id="importCmd" placeholder='e.g. /give @p diamond_sword 1 0 {display:{...}}'>
+                <button class="btn" onclick="importCommand()" style="flex: 0 0 auto;">Import Item</button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div>
+                <label for="item">Item Base ID</label>
+                <div class="note">Leave blank to keep slot empty</div>
+                <input type="text" id="item" list="mc-items" placeholder="e.g. diamond_sword">
                 
                 <datalist id="mc-items">
+                    <!-- Standard blocks & items list -->
                     <option value="stone">Stone</option>
                     <option value="grass">Grass Block</option>
                     <option value="dirt">Dirt</option>
@@ -215,27 +331,15 @@
                     <option value="mossy_cobblestone">Mossy Cobblestone</option>
                     <option value="obsidian">Obsidian</option>
                     <option value="torch">Torch</option>
-                    <option value="mob_spawner">Monster Spawner</option>
-                    <option value="oak_stairs">Oak Wood Stairs</option>
                     <option value="chest">Chest</option>
                     <option value="diamond_ore">Diamond Ore</option>
                     <option value="diamond_block">Block of Diamond</option>
                     <option value="crafting_table">Crafting Table</option>
                     <option value="furnace">Furnace</option>
                     <option value="ladder">Ladder</option>
-                    <option value="rail">Rail</option>
-                    <option value="stone_stairs">Cobblestone Stairs</option>
-                    <option value="lever">Lever</option>
-                    <option value="stone_pressure_plate">Stone Pressure Plate</option>
-                    <option value="iron_door">Iron Door</option>
-                    <option value="wooden_pressure_plate">Wooden Pressure Plate</option>
                     <option value="redstone_ore">Redstone Ore</option>
                     <option value="redstone_torch">Redstone Torch</option>
-                    <option value="stone_button">Stone Button</option>
-                    <option value="snow_layer">Snow</option>
-                    <option value="ice">Ice</option>
                     <option value="snow">Snow Block</option>
-                    <option value="cactus">Cactus</option>
                     <option value="clay">Clay</option>
                     <option value="jukebox">Jukebox</option>
                     <option value="fence">Oak Fence</option>
@@ -243,241 +347,63 @@
                     <option value="netherrack">Netherrack</option>
                     <option value="soul_sand">Soul Sand</option>
                     <option value="glowstone">Glowstone</option>
-                    <option value="lit_pumpkin">Jack o'Lantern</option>
                     <option value="stained_glass">Stained Glass</option>
-                    <option value="trapdoor">Wooden Trapdoor</option>
-                    <option value="monster_egg">Monster Egg</option>
-                    <option value="stonebrick">Stone Bricks</option>
-                    <option value="brown_mushroom_block">Brown Mushroom Block</option>
-                    <option value="red_mushroom_block">Red Mushroom Block</option>
+                    <option value="stained_glass_pane">Stained Glass Pane</option>
                     <option value="iron_bars">Iron Bars</option>
                     <option value="glass_pane">Glass Pane</option>
-                    <option value="melon_block">Melon</option>
-                    <option value="vine">Vines</option>
-                    <option value="fence_gate">Oak Fence Gate</option>
-                    <option value="brick_stairs">Brick Stairs</option>
-                    <option value="stone_brick_stairs">Stone Brick Stairs</option>
                     <option value="mycelium">Mycelium</option>
-                    <option value="waterlily">Lily Pad</option>
-                    <option value="nether_brick">Nether Brick</option>
-                    <option value="nether_brick_fence">Nether Brick Fence</option>
-                    <option value="nether_brick_stairs">Nether Brick Stairs</option>
                     <option value="enchanting_table">Enchantment Table</option>
                     <option value="end_portal_frame">End Portal Frame</option>
                     <option value="end_stone">End Stone</option>
                     <option value="dragon_egg">Dragon Egg</option>
                     <option value="redstone_lamp">Redstone Lamp</option>
-                    <option value="wooden_slab">Wood Slab</option>
-                    <option value="sandstone_stairs">Sandstone Stairs</option>
                     <option value="emerald_ore">Emerald Ore</option>
                     <option value="ender_chest">Ender Chest</option>
-                    <option value="tripwire_hook">Tripwire Hook</option>
                     <option value="emerald_block">Block of Emerald</option>
-                    <option value="spruce_stairs">Spruce Wood Stairs</option>
-                    <option value="birch_stairs">Birch Wood Stairs</option>
-                    <option value="jungle_stairs">Jungle Wood Stairs</option>
                     <option value="command_block">Command Block</option>
                     <option value="beacon">Beacon</option>
-                    <option value="cobblestone_wall">Cobblestone Wall</option>
-                    <option value="wooden_button">Wooden Button</option>
                     <option value="anvil">Anvil</option>
-                    <option value="trapped_chest">Trapped Chest</option>
-                    <option value="light_weighted_pressure_plate">Light Pressure Plate</option>
-                    <option value="heavy_weighted_pressure_plate">Heavy Pressure Plate</option>
-                    <option value="daylight_detector">Daylight Sensor</option>
-                    <option value="redstone_block">Block of Redstone</option>
-                    <option value="quartz_ore">Nether Quartz Ore</option>
                     <option value="hopper">Hopper</option>
                     <option value="quartz_block">Block of Quartz</option>
-                    <option value="quartz_stairs">Quartz Stairs</option>
-                    <option value="activator_rail">Activator Rail</option>
-                    <option value="dropper">Dropper</option>
-                    <option value="stained_hardened_clay">Stained Clay</option>
-                    <option value="stained_glass_pane">Stained Glass Pane</option>
-                    <option value="acacia_stairs">Acacia Wood Stairs</option>
-                    <option value="dark_oak_stairs">Dark Oak Wood Stairs</option>
                     <option value="slime">Slime Block</option>
                     <option value="barrier">Barrier</option>
-                    <option value="iron_trapdoor">Iron Trapdoor</option>
-                    <option value="prismarine">Prismarine</option>
                     <option value="sea_lantern">Sea Lantern</option>
-                    <option value="hay_block">Hay Bale</option>
-                    <option value="carpet">Carpet</option>
-                    <option value="hard_clay">Hardened Clay</option>
-                    <option value="coal_block">Block of Coal</option>
                     <option value="packed_ice">Packed Ice</option>
-                    <option value="red_sandstone">Red Sandstone</option>
-                    <option value="red_sandstone_stairs">Red Sandstone Stairs</option>
-                    
-                    <option value="iron_shovel">Iron Shovel</option>
+                    <option value="iron_sword">Iron Sword</option>
+                    <option value="diamond_sword">Diamond Sword</option>
                     <option value="iron_pickaxe">Iron Pickaxe</option>
-                    <option value="iron_axe">Iron Axe</option>
-                    <option value="flint_and_steel">Flint and Steel</option>
-                    <option value="apple">Apple</option>
+                    <option value="diamond_pickaxe">Diamond Pickaxe</option>
                     <option value="bow">Bow</option>
-                    <option value="arrow">Arrow</option>
-                    <option value="coal">Coal</option>
+                    <option value="apple">Apple</option>
+                    <option value="golden_apple">Golden Apple</option>
                     <option value="diamond">Diamond</option>
                     <option value="iron_ingot">Iron Ingot</option>
                     <option value="gold_ingot">Gold Ingot</option>
-                    <option value="iron_sword">Iron Sword</option>
-                    <option value="wooden_sword">Wooden Sword</option>
-                    <option value="wooden_shovel">Wooden Shovel</option>
-                    <option value="wooden_pickaxe">Wooden Pickaxe</option>
-                    <option value="wooden_axe">Wooden Axe</option>
-                    <option value="stone_sword">Stone Sword</option>
-                    <option value="stone_shovel">Stone Shovel</option>
-                    <option value="stone_pickaxe">Stone Pickaxe</option>
-                    <option value="stone_axe">Stone Axe</option>
-                    <option value="diamond_sword">Diamond Sword</option>
-                    <option value="diamond_shovel">Diamond Shovel</option>
-                    <option value="diamond_pickaxe">Diamond Pickaxe</option>
-                    <option value="diamond_axe">Diamond Axe</option>
                     <option value="stick">Stick</option>
-                    <option value="bowl">Bowl</option>
-                    <option value="mushroom_stew">Mushroom Stew</option>
-                    <option value="golden_sword">Golden Sword</option>
-                    <option value="golden_shovel">Golden Shovel</option>
-                    <option value="golden_pickaxe">Golden Pickaxe</option>
-                    <option value="golden_axe">Golden Axe</option>
                     <option value="string">String</option>
                     <option value="feather">Feather</option>
                     <option value="gunpowder">Gunpowder</option>
-                    <option value="wooden_hoe">Wooden Hoe</option>
-                    <option value="stone_hoe">Stone Hoe</option>
-                    <option value="iron_hoe">Iron Hoe</option>
-                    <option value="diamond_hoe">Diamond Hoe</option>
-                    <option value="golden_hoe">Golden Hoe</option>
-                    <option value="wheat_seeds">Seeds</option>
-                    <option value="wheat">Wheat</option>
-                    <option value="bread">Bread</option>
                     <option value="leather_helmet">Leather Cap</option>
-                    <option value="leather_chestplate">Leather Tunic</option>
-                    <option value="leather_leggings">Leather Pants</option>
-                    <option value="leather_boots">Leather Boots</option>
-                    <option value="chainmail_helmet">Chainmail Helmet</option>
-                    <option value="chainmail_chestplate">Chainmail Chestplate</option>
-                    <option value="chainmail_leggings">Chainmail Leggings</option>
-                    <option value="chainmail_boots">Chainmail Boots</option>
                     <option value="iron_helmet">Iron Helmet</option>
-                    <option value="iron_chestplate">Iron Chestplate</option>
-                    <option value="iron_leggings">Iron Leggings</option>
-                    <option value="iron_boots">Iron Boots</option>
                     <option value="diamond_helmet">Diamond Helmet</option>
                     <option value="diamond_chestplate">Diamond Chestplate</option>
                     <option value="diamond_leggings">Diamond Leggings</option>
                     <option value="diamond_boots">Diamond Boots</option>
-                    <option value="golden_helmet">Golden Helmet</option>
-                    <option value="golden_chestplate">Golden Chestplate</option>
-                    <option value="golden_leggings">Golden Leggings</option>
-                    <option value="golden_boots">Golden Boots</option>
-                    <option value="flint">Flint</option>
-                    <option value="porkchop">Raw Porkchop</option>
-                    <option value="cooked_porkchop">Cooked Porkchop</option>
-                    <option value="painting">Painting</option>
-                    <option value="golden_apple">Golden Apple</option>
-                    <option value="sign">Sign</option>
-                    <option value="bucket">Bucket</option>
-                    <option value="water_bucket">Water Bucket</option>
-                    <option value="lava_bucket">Lava Bucket</option>
-                    <option value="minecart">Minecart</option>
-                    <option value="saddle">Saddle</option>
-                    <option value="redstone">Redstone Dust</option>
-                    <option value="snowball">Snowball</option>
-                    <option value="boat">Boat</option>
-                    <option value="leather">Leather</option>
-                    <option value="milk_bucket">Milk Bucket</option>
-                    <option value="brick">Brick</option>
-                    <option value="clay_ball">Clay Ball</option>
-                    <option value="reeds">Sugar Canes</option>
-                    <option value="paper">Paper</option>
-                    <option value="book">Book</option>
-                    <option value="slime_ball">Slimeball</option>
-                    <option value="chest_minecart">Minecart with Chest</option>
-                    <option value="furnace_minecart">Minecart with Furnace</option>
-                    <option value="egg">Egg</option>
-                    <option value="compass">Compass</option>
-                    <option value="fishing_rod">Fishing Rod</option>
-                    <option value="clock">Clock</option>
-                    <option value="glowstone_dust">Glowstone Dust</option>
-                    <option value="fish">Raw Fish</option>
-                    <option value="cooked_fish">Cooked Fish</option>
-                    <option value="dye">Dye</option>
-                    <option value="bone">Bone</option>
-                    <option value="sugar">Sugar</option>
-                    <option value="cake">Cake</option>
-                    <option value="bed">Bed</option>
-                    <option value="repeater">Redstone Repeater</option>
-                    <option value="cookie">Cookie</option>
-                    <option value="filled_map">Map</option>
-                    <option value="shears">Shears</option>
-                    <option value="melon">Melon</option>
-                    <option value="pumpkin_seeds">Pumpkin Seeds</option>
-                    <option value="melon_seeds">Melon Seeds</option>
-                    <option value="beef">Raw Beef</option>
-                    <option value="cooked_beef">Steak</option>
-                    <option value="chicken">Raw Chicken</option>
-                    <option value="cooked_chicken">Cooked Chicken</option>
-                    <option value="rotten_flesh">Rotten Flesh</option>
                     <option value="ender_pearl">Ender Pearl</option>
                     <option value="blaze_rod">Blaze Rod</option>
-                    <option value="ghast_tear">Ghast Tear</option>
-                    <option value="gold_nugget">Gold Nugget</option>
-                    <option value="nether_wart">Nether Wart</option>
                     <option value="potion">Potion</option>
-                    <option value="glass_bottle">Glass Bottle</option>
-                    <option value="spider_eye">Spider Eye</option>
-                    <option value="fermented_spider_eye">Fermented Spider Eye</option>
-                    <option value="blaze_powder">Blaze Powder</option>
-                    <option value="magma_cream">Magma Cream</option>
-                    <option value="brewing_stand">Brewing Stand</option>
-                    <option value="cauldron">Cauldron</option>
-                    <option value="ender_eye">Eye of Ender</option>
-                    <option value="speckled_melon">Glistering Melon</option>
-                    <option value="spawn_egg">Spawn Egg</option>
                     <option value="experience_bottle">Bottle o' Enchanting</option>
-                    <option value="fire_charge">Fire Charge</option>
-                    <option value="writable_book">Book and Quill</option>
-                    <option value="written_book">Written Book</option>
                     <option value="emerald">Emerald</option>
-                    <option value="item_frame">Item Frame</option>
-                    <option value="flower_pot">Flower Pot</option>
-                    <option value="carrot">Carrot</option>
-                    <option value="potato">Potato</option>
-                    <option value="baked_potato">Baked Potato</option>
-                    <option value="poisonous_potato">Poisonous Potato</option>
-                    <option value="map">Empty Map</option>
-                    <option value="golden_carrot">Golden Carrot</option>
-                    <option value="skull">Mob Head</option>
-                    <option value="carrot_on_a_stick">Carrot on a Stick</option>
                     <option value="nether_star">Nether Star</option>
-                    <option value="pumpkin_pie">Pumpkin Pie</option>
-                    <option value="fireworks">Firework Rocket</option>
-                    <option value="firework_charge">Firework Star</option>
                     <option value="enchanted_book">Enchanted Book</option>
-                    <option value="comparator">Redstone Comparator</option>
-                    <option value="netherbrick">Nether Brick</option>
-                    <option value="quartz">Nether Quartz</option>
-                    <option value="tnt_minecart">Minecart with TNT</option>
-                    <option value="hopper_minecart">Minecart with Hopper</option>
-                    <option value="prismarine_shard">Prismarine Shard</option>
-                    <option value="prismarine_crystals">Prismarine Crystals</option>
-                    <option value="rabbit">Raw Rabbit</option>
-                    <option value="cooked_rabbit">Cooked Rabbit</option>
-                    <option value="rabbit_stew">Rabbit Stew</option>
-                    <option value="rabbit_foot">Rabbit's Foot</option>
-                    <option value="rabbit_hide">Rabbit Hide</option>
-                    <option value="armor_stand">Armor Stand</option>
-                    <option value="iron_horse_armor">Iron Horse Armor</option>
-                    <option value="golden_horse_armor">Golden Horse Armor</option>
-                    <option value="diamond_horse_armor">Diamond Horse Armor</option>
-                    <option value="lead">Lead</option>
                     <option value="name_tag">Name Tag</option>
-                    <option value="command_block_minecart">Minecart with Command Block</option>
-                    <option value="mutton">Raw Mutton</option>
-                    <option value="cooked_mutton">Cooked Mutton</option>
-                    <option value="banner">Banner</option>
+                    <option value="paper">Paper</option>
                 </datalist>
+            </div>
+            <div class="small-col">
+                <label for="itemData">Data</label>
+                <div class="note">e.g. Color</div>
+                <input type="number" id="itemData" value="0" min="0" max="32767">
             </div>
             <div class="small-col">
                 <label for="itemAmount">Amount</label>
@@ -488,11 +414,11 @@
 
         <label for="itemName">Custom Name</label>
         <div class="note">Use & for color codes (e.g., &cEpic Sword)</div>
-        <input type="text" id="itemName" value="&bHi ezFlex">
+        <input type="text" id="itemName" placeholder="&bEpic Item">
 
         <label for="itemLore">Lore (One line per row)</label>
         <div class="note">Use & for color codes. Leave a line blank for an empty space!</div>
-        <textarea id="itemLore">&bLine 1 of lore&#10;&#10;&aLine 3 of lore</textarea>
+        <textarea id="itemLore" placeholder="&bLine 1 of lore..."></textarea>
 
         <div class="row" style="margin-top: 15px;">
             <div>
@@ -555,31 +481,67 @@
                 <input type="checkbox" id="hideFlags" checked>
                 <label for="hideFlags">Hide Enchantment Tooltip (HideFlags: 1)</label>
             </div>
+        </div>
+
+        <div class="checkbox-group" style="margin-top: 30px; border-top: 2px solid rgba(0,0,0,0.1); padding-top: 15px;">
             <div class="checkbox-container">
                 <input type="checkbox" id="useConsole">
                 <label for="useConsole">Running in Console (Removes /)</label>
             </div>
         </div>
 
-        <h3>Generated Command:</h3>
+        <h3>Generated Item Command (Current Slot):</h3>
+        <div class="note">Copy the /give command for ONLY the item you are currently editing.</div>
+        <div class="output-container">
+            <div class="output" id="singleCommandOutput">Slot is empty.</div>
+            <button class="btn copy-btn" id="copySingleBtn" onclick="copySingleCommand()">Copy Item</button>
+        </div>
+
+        <h3 style="margin-top: 30px;">Generated Chest Command:</h3>
+        <div class="note">Place this chest to see ALL your items! (Note: 54-slot chests may require placing two chests side-by-side)</div>
         <div class="output-container">
             <div class="output" id="commandOutput">/give @p ...</div>
-            <button class="btn copy-btn" onclick="copyCommand()">Copy</button>
+            <button class="btn copy-btn" id="copyChestBtn" onclick="copyChestCommand()">Copy Chest</button>
         </div>
     </div>
 
     <!-- LIVE PREVIEW SECTION -->
     <div class="preview-container">
-        <h2 class="preview-title">Live Preview</h2>
+        <h2 class="preview-title">Live Preview (Current Slot)</h2>
         <div class="mc-tooltip" id="mcTooltip">
-            <!-- Tooltip content generated by JS -->
+            <div style="color: #555555; font-style: italic;">Empty Slot</div>
         </div>
     </div>
 </div>
 
 <script>
-    const fields = ['playerName', 'item', 'itemAmount', 'itemName', 'itemLore', 'autoCenterName', 'autoCenterLore', 'enchant', 'level', 'hideFlags', 'useConsole'];
+    // --- STATE MANAGEMENT ---
+    let currentChestSize = 27;
+    let selectedSlot = 0;
     
+    // Create an array holding 54 empty slot objects
+    let chestData = Array(54).fill(null).map(() => getEmptyItem());
+
+    function getEmptyItem() {
+        return {
+            item: '',
+            data: '0',
+            amount: '1',
+            itemName: '',
+            itemLore: '',
+            enchant: '',
+            level: '1',
+            autoCenterName: false,
+            autoCenterLore: true,
+            hideFlags: true
+        };
+    }
+
+    // List of input IDs to bind event listeners
+    const slotFields = ['item', 'itemData', 'itemAmount', 'itemName', 'itemLore', 'autoCenterName', 'autoCenterLore', 'enchant', 'level', 'hideFlags'];
+    const globalFields = ['playerName', 'chestName', 'useConsole'];
+
+    // --- MATH & UTILS ---
     const colorMap = {
         '0': '#000000', '1': '#0000AA', '2': '#00AA00', '3': '#00AAAA',
         '4': '#AA0000', '5': '#AA00AA', '6': '#FFAA00', '7': '#AAAAAA',
@@ -593,8 +555,6 @@
     }
 
     function unpadText(text) {
-        // We only strip spaces right at the start of the line (or immediately following the 
-        // leading color code) using ^ so that spaces in the middle of sentences are never destroyed!
         let cleaned = text.replace(/^(§[0-9a-fk-or])\s+/i, '$1').replace(/^\s+/g, '');
         return cleaned.replace(/§/g, '&');
     }
@@ -656,108 +616,112 @@
         return html;
     }
 
-    function importCommand() {
-        const cmd = document.getElementById('importCmd').value.trim();
-        if (!cmd) return;
+    // --- CORE LOGIC ---
 
-        // Reset fields
-        document.getElementById('itemName').value = '';
-        document.getElementById('itemLore').value = '';
-        document.getElementById('itemAmount').value = '1';
-        document.getElementById('enchant').value = '';
-        document.getElementById('level').value = '1';
-        document.getElementById('hideFlags').checked = false;
-        document.getElementById('autoCenterName').checked = false; // Reset centering so imported string is raw
-        
-        // 1. Console vs Slash
-        document.getElementById('useConsole').checked = !cmd.startsWith('/');
-
-        // 2. Extract Player, Item, and Amount
-        const baseMatch = cmd.match(/^(?:\/)?give\s+([^ \n]+)\s+([^ \n{]+)(?:\s+(\d+))?/i);
-        if (baseMatch) {
-            document.getElementById('playerName').value = baseMatch[1];
-            document.getElementById('item').value = baseMatch[2].replace(/^minecraft:/, '');
-            if (baseMatch[3]) {
-                document.getElementById('itemAmount').value = baseMatch[3];
-            }
+    function changeChestSize() {
+        saveCurrentSlot();
+        currentChestSize = parseInt(document.getElementById('chestSize').value);
+        if (selectedSlot >= currentChestSize) {
+            selectedSlot = 0; 
+            loadSlotData(0);
         }
-
-        // 3. Extract Custom Name
-        const nameMatch = cmd.match(/Name:"((?:[^"\\]|\\.)*)"/);
-        if (nameMatch) {
-            // Unescape quotes first
-            let text = nameMatch[1].replace(/\\"/g, '"');
-            document.getElementById('itemName').value = unpadText(text);
-        }
-
-        // 4. Extract Lore
-        // Advanced Regex: Captures everything in the array, completely ignoring brackets inside quotes!
-        const loreMatch = cmd.match(/Lore:\[((?:\s*"(?:[^"\\]|\\.)*"\s*,?\s*)*)\]/);
-        if (loreMatch) {
-            const rawLoreString = loreMatch[1];
-            // Extract the individual quoted strings securely
-            const loreArray = rawLoreString.match(/"(?:[^"\\]|\\.)*"/g) || [];
-            
-            const cleanLore = loreArray.map(line => {
-                // Strip the exact start/end quotes and unescape inner quotes
-                let text = line.substring(1, line.length - 1).replace(/\\"/g, '"');
-                let unpadded = unpadText(text);
-                
-                // If it unpads down to just an isolated color code, treat it as our empty space!
-                if (unpadded.match(/^&[0-9a-fk-or]$/i)) return ''; 
-                return unpadded;
-            });
-            document.getElementById('itemLore').value = cleanLore.join('\n');
-        }
-
-        // 5. Extract Enchantments
-        const enchMatch = cmd.match(/ench:\[.*?id:(\d+),lvl:(\d+).*?\]/);
-        if (enchMatch) {
-            document.getElementById('enchant').value = enchMatch[1];
-            document.getElementById('level').value = enchMatch[2];
-        }
-
-        // 6. Extract HideFlags
-        if (cmd.includes('HideFlags:1')) {
-            document.getElementById('hideFlags').checked = true;
-        }
-
-        const btn = document.querySelector('.import-section .btn');
-        btn.innerText = 'Imported!';
-        btn.style.background = '#27ae60';
-        setTimeout(() => {
-            btn.innerText = 'Import';
-            btn.style.background = '';
-        }, 1500);
-
+        renderGrid();
         generateCommand();
     }
 
-    function generateCommand() {
-        const player = document.getElementById('playerName').value || '@p';
-        const amount = document.getElementById('itemAmount').value || '1';
+    function renderGrid() {
+        const grid = document.getElementById('chestGrid');
+        grid.innerHTML = '';
         
-        let itemInput = document.getElementById('item').value.trim() || 'paper';
-        const item = itemInput.includes(':') ? itemInput : 'minecraft:' + itemInput;
-        
-        let rawItemName = document.getElementById('itemName').value;
-        
-        let rawLoreLines = document.getElementById('itemLore').value.split('\n');
-        
-        while (rawLoreLines.length > 0 && rawLoreLines[rawLoreLines.length - 1].trim() === '') {
-            rawLoreLines.pop();
-        }
-        
-        rawLoreLines = rawLoreLines.map(line => line.trim() === '' ? '&f ' : line);
-        
-        const autoCenterName = document.getElementById('autoCenterName').checked;
-        const autoCenterLore = document.getElementById('autoCenterLore').checked;
-        
-        const enchantId = document.getElementById('enchant').value;
-        const level = document.getElementById('level').value || '1';
-        const hideFlags = document.getElementById('hideFlags').checked;
-        const useConsole = document.getElementById('useConsole').checked;
+        for (let i = 0; i < currentChestSize; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'chest-slot';
+            if (i === selectedSlot) slot.classList.add('selected');
+            
+            // If the item ID isn't empty, inject the Minecraft icon!
+            if (chestData[i].item.trim() !== '') {
+                slot.classList.add('filled');
+                
+                // Text fallback behind the image just in case
+                let fallback = document.createElement('span');
+                fallback.className = 'item-fallback';
+                fallback.innerText = chestData[i].item.replace('minecraft:', '').substring(0, 2);
+                slot.appendChild(fallback);
 
+                // Real Item Sprite
+                let img = document.createElement('img');
+                img.className = 'item-icon';
+                // Public API that provides nice item renders based on ID
+                img.src = `https://api.mineatar.io/item/${chestData[i].item.replace('minecraft:', '')}`;
+                img.onerror = function() {
+                    // Hide image if the ID is a custom modded item or invalid, relying on the fallback text
+                    this.style.display = 'none';
+                };
+                slot.appendChild(img);
+            }
+            
+            slot.onclick = () => selectSlot(i);
+            grid.appendChild(slot);
+        }
+    }
+
+    function selectSlot(index) {
+        saveCurrentSlot();
+        selectedSlot = index;
+        document.getElementById('editorTitle').innerText = `Editing Slot ${index}`;
+        document.getElementById('importSlotLabel').innerText = index;
+        loadSlotData(index);
+        renderGrid();
+        updatePreview();
+    }
+
+    function loadSlotData(index) {
+        const data = chestData[index];
+        document.getElementById('item').value = data.item;
+        document.getElementById('itemData').value = data.data;
+        document.getElementById('itemAmount').value = data.amount;
+        document.getElementById('itemName').value = data.itemName;
+        document.getElementById('itemLore').value = data.itemLore;
+        document.getElementById('enchant').value = data.enchant;
+        document.getElementById('level').value = data.level;
+        document.getElementById('autoCenterName').checked = data.autoCenterName;
+        document.getElementById('autoCenterLore').checked = data.autoCenterLore;
+        document.getElementById('hideFlags').checked = data.hideFlags;
+        updatePreview();
+    }
+
+    function saveCurrentSlot() {
+        chestData[selectedSlot] = {
+            item: document.getElementById('item').value.trim(),
+            data: document.getElementById('itemData').value || '0',
+            amount: document.getElementById('itemAmount').value || '1',
+            itemName: document.getElementById('itemName').value,
+            itemLore: document.getElementById('itemLore').value,
+            enchant: document.getElementById('enchant').value,
+            level: document.getElementById('level').value || '1',
+            autoCenterName: document.getElementById('autoCenterName').checked,
+            autoCenterLore: document.getElementById('autoCenterLore').checked,
+            hideFlags: document.getElementById('hideFlags').checked
+        };
+    }
+
+    function clearSlot() {
+        chestData[selectedSlot] = getEmptyItem();
+        loadSlotData(selectedSlot);
+        renderGrid();
+        generateCommand();
+    }
+
+    function handleInput() {
+        saveCurrentSlot();
+        renderGrid();
+        updatePreview();
+        generateCommand();
+    }
+
+    // --- PREVIEW AND GENERATION ---
+
+    function processCentering(rawItemName, rawLoreLines, autoCenterName, autoCenterLore) {
         let processedName = rawItemName;
         let processedLoreLines = [...rawLoreLines];
 
@@ -798,81 +762,337 @@
                 return padding + line;
             };
 
-            if (autoCenterName && rawItemName) {
-                processedName = padLine(rawItemName);
-            }
-            
-            if (autoCenterLore && rawLoreLines.length > 0) {
-                processedLoreLines = rawLoreLines.map(line => padLine(line));
-            }
+            if (autoCenterName && rawItemName) processedName = padLine(rawItemName);
+            if (autoCenterLore && rawLoreLines.length > 0) processedLoreLines = rawLoreLines.map(line => padLine(line));
+        }
+        
+        return { processedName, processedLoreLines };
+    }
+
+    function updatePreview() {
+        const data = chestData[selectedSlot];
+        
+        if (data.item === '') {
+            document.getElementById('mcTooltip').innerHTML = '<div style="color: #555555; font-style: italic;">Empty Slot</div>';
+            return;
         }
 
+        let rawLoreLines = data.itemLore.split('\n');
+        while (rawLoreLines.length > 0 && rawLoreLines[rawLoreLines.length - 1].trim() === '') rawLoreLines.pop();
+        rawLoreLines = rawLoreLines.map(line => line.trim() === '' ? '&f ' : line);
+
+        const { processedName, processedLoreLines } = processCentering(data.itemName, rawLoreLines, data.autoCenterName, data.autoCenterLore);
+
         let tooltipHTML = '';
-        if (rawItemName) {
+        if (data.itemName) {
             tooltipHTML += `<div>${parseToHTML(processedName, '#FFFFFF')}</div>`; 
+        } else {
+            tooltipHTML += `<div>${parseToHTML('&f' + data.item, '#FFFFFF')}</div>`;
         }
         
         processedLoreLines.forEach(line => {
             tooltipHTML += `<div>${parseToHTML(line, '#AA00AA')}</div>`;
         });
         
-        if (enchantId !== "") {
+        if (data.enchant !== "") {
             const enchantSelect = document.getElementById('enchant');
-            const enchantName = enchantSelect.options[enchantSelect.selectedIndex].text.split(' (')[0];
+            const opt = Array.from(enchantSelect.options).find(o => o.value === data.enchant);
+            const enchantName = opt ? opt.text.split(' (')[0] : 'Enchantment';
             
-            if (!hideFlags) {
-                tooltipHTML += `<div>${parseToHTML(`&7${enchantName} ${level}`)}</div>`;
+            if (!data.hideFlags) {
+                tooltipHTML += `<div>${parseToHTML(`&7${enchantName} ${data.level}`)}</div>`;
             }
         }
         
         document.getElementById('mcTooltip').innerHTML = tooltipHTML;
-
-        let nbtParts = [];
-        let displayParts = [];
-        
-        if (processedName) {
-            displayParts.push(`Name:"${processedName.replace(/&/g, '§')}"`);
-        }
-        if (processedLoreLines.length > 0) {
-            const formattedLore = processedLoreLines.map(line => `"${line.replace(/&/g, '§')}"`).join(',');
-            displayParts.push(`Lore:[${formattedLore}]`);
-        }
-        if (displayParts.length > 0) {
-            nbtParts.push(`display:{${displayParts.join(',')}}`);
-        }
-
-        if (enchantId !== "") {
-            nbtParts.push(`ench:[{id:${enchantId},lvl:${level}}]`);
-        }
-
-        if (hideFlags) {
-            nbtParts.push(`HideFlags:1`);
-        }
-
-        const commandPrefix = useConsole ? "give" : "/give";
-        let nbtString = nbtParts.length > 0 ? `{${nbtParts.join(',')}}` : "";
-        
-        const fullCommand = `${commandPrefix} ${player} ${item} ${amount} 0 ${nbtString}`.trim();
-        
-        document.getElementById('commandOutput').textContent = fullCommand;
     }
 
-    function copyCommand() {
-        const commandText = document.getElementById('commandOutput').textContent;
+    function generateCommand() {
+        const player = document.getElementById('playerName').value || '@p';
+        const chestNameRaw = document.getElementById('chestName').value;
+        const useConsole = document.getElementById('useConsole').checked;
+
+        let itemsList = [];
+        let singleCommandStr = "Slot is empty.";
+
+        for (let i = 0; i < currentChestSize; i++) {
+            const data = chestData[i];
+            
+            if (data.item.trim() !== '') {
+                const itemID = data.item.includes(':') ? data.item : 'minecraft:' + data.item;
+                
+                let rawLoreLines = data.itemLore.split('\n');
+                while (rawLoreLines.length > 0 && rawLoreLines[rawLoreLines.length - 1].trim() === '') rawLoreLines.pop();
+                rawLoreLines = rawLoreLines.map(line => line.trim() === '' ? '&f ' : line);
+                
+                const { processedName, processedLoreLines } = processCentering(data.itemName, rawLoreLines, data.autoCenterName, data.autoCenterLore);
+                
+                let displayParts = [];
+                if (processedName) {
+                    displayParts.push(`Name:"${processedName.replace(/&/g, '§')}"`);
+                }
+                if (processedLoreLines.length > 0) {
+                    const formattedLore = processedLoreLines.map(line => `"${line.replace(/&/g, '§')}"`).join(',');
+                    displayParts.push(`Lore:[${formattedLore}]`);
+                }
+                
+                let nbtParts = [];
+                if (displayParts.length > 0) {
+                    nbtParts.push(`display:{${displayParts.join(',')}}`);
+                }
+                if (data.enchant !== "") {
+                    nbtParts.push(`ench:[{id:${data.enchant},lvl:${data.level}}]`);
+                }
+                if (data.hideFlags) {
+                    nbtParts.push(`HideFlags:1`);
+                }
+
+                const tagString = nbtParts.length > 0 ? `,tag:{${nbtParts.join(',')}}` : '';
+                itemsList.push(`{Slot:${i}b,id:"${itemID}",Count:${data.amount}b,Damage:${data.data}s${tagString}}`);
+
+                // Store single item string if it's the currently selected slot
+                if (i === selectedSlot) {
+                    const commandPrefix = useConsole ? "give" : "/give";
+                    const singleTagString = nbtParts.length > 0 ? `{${nbtParts.join(',')}}` : '';
+                    singleCommandStr = `${commandPrefix} ${player} ${itemID} ${data.amount} ${data.data} ${singleTagString}`.trim();
+                }
+            }
+        }
+
+        let chestNbtParts = [];
+        if (chestNameRaw.trim() !== '') {
+            chestNbtParts.push(`display:{Name:"${chestNameRaw.replace(/&/g, '§')}"}`);
+        }
+        if (itemsList.length > 0) {
+            chestNbtParts.push(`BlockEntityTag:{Items:[${itemsList.join(',')}]}`);
+        }
+        
+        let chestNbtString = chestNbtParts.length > 0 ? `{${chestNbtParts.join(',')}}` : '';
+        const commandPrefix = useConsole ? "give" : "/give";
+        
+        const fullChestCommand = `${commandPrefix} ${player} minecraft:chest 1 0 ${chestNbtString}`.trim();
+        
+        // Output Both Commands
+        document.getElementById('commandOutput').textContent = fullChestCommand;
+        document.getElementById('singleCommandOutput').textContent = singleCommandStr;
+    }
+
+    // --- FULL CHEST IMPORT ---
+    function importFullChest() {
+        const cmd = document.getElementById('importFullCmd').value.trim();
+        if (!cmd) return;
+
+        // Wipe all slots
+        chestData = Array(54).fill(null).map(() => getEmptyItem());
+
+        // Find the beginning of the Items array securely
+        const itemsStart = cmd.indexOf('Items:[');
+        if (itemsStart !== -1) {
+            let depth = 1;
+            let index = itemsStart + 7;
+            
+            // Extract exactly the contents inside Items:[ ... ] using bracket balancing
+            while (index < cmd.length && depth > 0) {
+                if (cmd[index] === '[') depth++;
+                else if (cmd[index] === ']') depth--;
+                index++;
+            }
+            
+            let itemsStr = cmd.substring(itemsStart + 7, index - 1);
+            
+            // Split by {Slot: so we can process each item individually
+            let itemBlocks = itemsStr.split(/{Slot:/i);
+            
+            for (let block of itemBlocks) {
+                if (!block.trim()) continue;
+                block = "{Slot:" + block; // Restore the split text
+
+                // Extract Slot Index
+                let slotMatch = block.match(/Slot:(\d+)[bs]?/i);
+                let slot = slotMatch ? parseInt(slotMatch[1]) : -1;
+
+                if (slot >= 0 && slot < 54) {
+                    // Automatically upgrade to a Double Chest if an item is beyond slot 26
+                    if (slot > 26 && currentChestSize === 27) {
+                        document.getElementById('chestSize').value = "54";
+                        currentChestSize = 54;
+                    }
+
+                    // Extract Item details
+                    let idMatch = block.match(/id:"(?:minecraft:)?([^"]+)"/i);
+                    chestData[slot].item = idMatch ? idMatch[1] : '';
+
+                    let countMatch = block.match(/Count:(\d+)[bs]?/i);
+                    chestData[slot].amount = countMatch ? countMatch[1] : '1';
+
+                    let damageMatch = block.match(/Damage:(\d+)[bs]?/i);
+                    chestData[slot].data = damageMatch ? damageMatch[1] : '0';
+
+                    // Locate and extract the specific tag:{} area for this item to read custom names/lore
+                    let tagStart = block.indexOf('tag:{');
+                    let tagStr = '';
+                    
+                    if (tagStart !== -1) {
+                        let tDepth = 0;
+                        let tEnd = -1;
+                        for (let j = tagStart + 4; j < block.length; j++) {
+                            if (block[j] === '{') tDepth++;
+                            else if (block[j] === '}') {
+                                tDepth--;
+                                if (tDepth === 0) {
+                                    tEnd = j + 1;
+                                    break;
+                                }
+                            }
+                        }
+                        if (tEnd !== -1) tagStr = block.substring(tagStart + 4, tEnd);
+                    }
+
+                    // Apply the tag data to the slot
+                    if (tagStr) {
+                        const nameMatch = tagStr.match(/Name:"((?:[^"\\]|\\.)*)"/);
+                        if (nameMatch) {
+                            let text = nameMatch[1].replace(/\\"/g, '"');
+                            chestData[slot].itemName = unpadText(text);
+                        }
+
+                        const loreMatch = tagStr.match(/Lore:\[((?:\s*"(?:[^"\\]|\\.)*"\s*,?\s*)*)\]/);
+                        if (loreMatch) {
+                            const rawLoreString = loreMatch[1];
+                            const loreArray = rawLoreString.match(/"(?:[^"\\]|\\.)*"/g) || [];
+                            const cleanLore = loreArray.map(line => {
+                                let text = line.substring(1, line.length - 1).replace(/\\"/g, '"');
+                                let unpadded = unpadText(text);
+                                if (unpadded.match(/^&[0-9a-fk-or]$/i) || unpadded === '') return ''; 
+                                return unpadded;
+                            });
+                            chestData[slot].itemLore = cleanLore.join('\n');
+                        }
+
+                        const enchMatch = tagStr.match(/ench:\[.*?id:(\d+),lvl:(\d+).*?\]/);
+                        if (enchMatch) {
+                            chestData[slot].enchant = enchMatch[1];
+                            chestData[slot].level = enchMatch[2];
+                        }
+
+                        if (tagStr.includes('HideFlags:1')) {
+                            chestData[slot].hideFlags = true;
+                        }
+                    }
+
+                    // Disable auto-center so imported strings remain raw by default
+                    chestData[slot].autoCenterName = false;
+                    chestData[slot].autoCenterLore = false;
+                }
+            }
+        }
+
+        const btn = document.querySelector('#importFullCmd').nextElementSibling;
+        btn.innerText = 'Chest Loaded!';
+        setTimeout(() => btn.innerText = 'Import Chest', 2000);
+
+        loadSlotData(selectedSlot);
+        renderGrid();
+        generateCommand();
+    }
+
+    // --- SINGLE ITEM IMPORT ---
+    function importCommand() {
+        const cmd = document.getElementById('importCmd').value.trim();
+        if (!cmd) return;
+
+        chestData[selectedSlot] = getEmptyItem();
+        
+        const baseMatch = cmd.match(/^(?:\/)?give\s+([^ \n]+)\s+([^ \n{]+)(?:\s+(\d+))?(?:\s+(\d+))?/i);
+        if (baseMatch) {
+            chestData[selectedSlot].item = baseMatch[2].replace(/^minecraft:/, '');
+            if (baseMatch[3]) chestData[selectedSlot].amount = baseMatch[3];
+            if (baseMatch[4]) chestData[selectedSlot].data = baseMatch[4]; 
+        }
+
+        const nameMatch = cmd.match(/Name:"((?:[^"\\]|\\.)*)"/);
+        if (nameMatch) {
+            let text = nameMatch[1].replace(/\\"/g, '"');
+            chestData[selectedSlot].itemName = unpadText(text);
+        }
+
+        const loreMatch = cmd.match(/Lore:\[((?:\s*"(?:[^"\\]|\\.)*"\s*,?\s*)*)\]/);
+        if (loreMatch) {
+            const rawLoreString = loreMatch[1];
+            const loreArray = rawLoreString.match(/"(?:[^"\\]|\\.)*"/g) || [];
+            
+            const cleanLore = loreArray.map(line => {
+                let text = line.substring(1, line.length - 1).replace(/\\"/g, '"');
+                let unpadded = unpadText(text);
+                if (unpadded.match(/^&[0-9a-fk-or]$/i) || unpadded === '') return ''; 
+                return unpadded;
+            });
+            chestData[selectedSlot].itemLore = cleanLore.join('\n');
+        }
+
+        const enchMatch = cmd.match(/ench:\[.*?id:(\d+),lvl:(\d+).*?\]/);
+        if (enchMatch) {
+            chestData[selectedSlot].enchant = enchMatch[1];
+            chestData[selectedSlot].level = enchMatch[2];
+        }
+
+        if (cmd.includes('HideFlags:1')) {
+            chestData[selectedSlot].hideFlags = true;
+        }
+
+        chestData[selectedSlot].autoCenterName = false;
+        chestData[selectedSlot].autoCenterLore = false; 
+
+        const btn = document.querySelector('#importCmd').nextElementSibling;
+        btn.innerText = 'Imported!';
+        btn.style.background = '#27ae60';
+        setTimeout(() => {
+            btn.innerText = 'Import Item';
+            btn.style.background = '#4CAF50';
+        }, 1500);
+
+        loadSlotData(selectedSlot);
+        renderGrid();
+        generateCommand();
+    }
+
+    function copySingleCommand() {
+        const commandText = document.getElementById('singleCommandOutput').textContent;
+        if (commandText === "Slot is empty.") return;
+        
         navigator.clipboard.writeText(commandText).then(() => {
-            const btn = document.querySelector('.copy-btn');
+            const btn = document.getElementById('copySingleBtn');
             btn.innerText = 'Copied!';
             setTimeout(() => {
-                btn.innerText = 'Copy';
+                btn.innerText = 'Copy Item';
             }, 2000);
         });
     }
 
-    fields.forEach(id => {
+    function copyChestCommand() {
+        const commandText = document.getElementById('commandOutput').textContent;
+        navigator.clipboard.writeText(commandText).then(() => {
+            const btn = document.getElementById('copyChestBtn');
+            btn.innerText = 'Copied!';
+            setTimeout(() => {
+                btn.innerText = 'Copy Chest';
+            }, 2000);
+        });
+    }
+
+    // Attach listeners
+    slotFields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', handleInput);
+    });
+    globalFields.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', generateCommand);
     });
     
+    // Initial Setup
+    renderGrid();
+    loadSlotData(0);
     generateCommand();
 </script>
 
