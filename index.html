@@ -91,12 +91,11 @@
             box-shadow: 0 0 0 2px rgba(41, 128, 185, 0.3);
         }
         
-        /* Taller Text Area for Lore */
         textarea { height: 150px; resize: vertical; } 
         
         .row { display: flex; gap: 15px; align-items: flex-end; }
         .row > div { flex: 1; }
-        .row > .small-col { flex: 0 0 80px; } /* Keeps Amount box small */
+        .row > .small-col { flex: 0 0 80px; } 
 
         .checkbox-group { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
         .checkbox-container { display: flex; align-items: center; }
@@ -173,7 +172,6 @@
                 <div class="note">Search or type Base ID</div>
                 <input type="text" id="item" value="paper" list="mc-items" placeholder="Type to search items...">
                 
-                <!-- MASSIVE Searchable Dropdown List -->
                 <datalist id="mc-items">
                     <option value="stone">Stone</option>
                     <option value="grass">Grass Block</option>
@@ -595,7 +593,9 @@
     }
 
     function unpadText(text) {
-        let cleaned = text.replace(/§([0-9a-fk-or])\s+/gi, '§$1').replace(/^\s+/g, '');
+        // We only strip spaces right at the start of the line (or immediately following the 
+        // leading color code) using ^ so that spaces in the middle of sentences are never destroyed!
+        let cleaned = text.replace(/^(§[0-9a-fk-or])\s+/i, '$1').replace(/^\s+/g, '');
         return cleaned.replace(/§/g, '&');
     }
 
@@ -683,21 +683,28 @@
         }
 
         // 3. Extract Custom Name
-        const nameMatch = cmd.match(/Name:"([^"]+)"/);
+        const nameMatch = cmd.match(/Name:"((?:[^"\\]|\\.)*)"/);
         if (nameMatch) {
-            document.getElementById('itemName').value = unpadText(nameMatch[1]);
+            // Unescape quotes first
+            let text = nameMatch[1].replace(/\\"/g, '"');
+            document.getElementById('itemName').value = unpadText(text);
         }
 
         // 4. Extract Lore
-        const loreMatch = cmd.match(/Lore:\[(.*?)\]/);
+        // Advanced Regex: Captures everything in the array, completely ignoring brackets inside quotes!
+        const loreMatch = cmd.match(/Lore:\[((?:\s*"(?:[^"\\]|\\.)*"\s*,?\s*)*)\]/);
         if (loreMatch) {
             const rawLoreString = loreMatch[1];
-            const loreArray = rawLoreString.match(/"([^"]*)"/g) || [];
+            // Extract the individual quoted strings securely
+            const loreArray = rawLoreString.match(/"(?:[^"\\]|\\.)*"/g) || [];
             
-            // Clean up lines and convert white spaces back to empty lines
             const cleanLore = loreArray.map(line => {
-                let unpadded = unpadText(line.replace(/(^"|"$)/g, ''));
-                if (unpadded === '&f ') return ''; // Convert our special space back to an empty line
+                // Strip the exact start/end quotes and unescape inner quotes
+                let text = line.substring(1, line.length - 1).replace(/\\"/g, '"');
+                let unpadded = unpadText(text);
+                
+                // If it unpads down to just an isolated color code, treat it as our empty space!
+                if (unpadded.match(/^&[0-9a-fk-or]$/i)) return ''; 
                 return unpadded;
             });
             document.getElementById('itemLore').value = cleanLore.join('\n');
@@ -735,15 +742,12 @@
         
         let rawItemName = document.getElementById('itemName').value;
         
-        // Handle empty lore lines correctly
         let rawLoreLines = document.getElementById('itemLore').value.split('\n');
         
-        // Remove trailing empty lines so it doesn't create infinite space at the bottom
         while (rawLoreLines.length > 0 && rawLoreLines[rawLoreLines.length - 1].trim() === '') {
             rawLoreLines.pop();
         }
         
-        // Convert any internal empty lines to a white color code + space so Minecraft displays it as blank
         rawLoreLines = rawLoreLines.map(line => line.trim() === '' ? '&f ' : line);
         
         const autoCenterName = document.getElementById('autoCenterName').checked;
@@ -757,18 +761,15 @@
         let processedName = rawItemName;
         let processedLoreLines = [...rawLoreLines];
 
-        // --- COMBINED CENTERING LOGIC ---
         if (autoCenterName || autoCenterLore) {
             let maxPixelWidth = 0;
-            let longestIndex = -2; // -2 = none, -1 = name, 0+ = lore
+            let longestIndex = -2; 
             
-            // Check Name width
             if (rawItemName) {
                 maxPixelWidth = getMCPixelWidth(rawItemName);
                 longestIndex = -1;
             }
             
-            // Check Lore widths
             rawLoreLines.forEach((line, index) => {
                 const w = getMCPixelWidth(line);
                 if (w > maxPixelWidth) {
@@ -777,7 +778,6 @@
                 }
             });
 
-            // Adjust width for perfectly even spacing
             if (maxPixelWidth % 2 !== 0) {
                 if (longestIndex === -1 && rawItemName) {
                     rawItemName += ' ';
@@ -807,7 +807,6 @@
             }
         }
 
-        // --- PREVIEW RENDER ---
         let tooltipHTML = '';
         if (rawItemName) {
             tooltipHTML += `<div>${parseToHTML(processedName, '#FFFFFF')}</div>`; 
@@ -828,7 +827,6 @@
         
         document.getElementById('mcTooltip').innerHTML = tooltipHTML;
 
-        // --- COMMAND GENERATION ---
         let nbtParts = [];
         let displayParts = [];
         
@@ -854,7 +852,6 @@
         const commandPrefix = useConsole ? "give" : "/give";
         let nbtString = nbtParts.length > 0 ? `{${nbtParts.join(',')}}` : "";
         
-        // Final command assembly includes the amount!
         const fullCommand = `${commandPrefix} ${player} ${item} ${amount} 0 ${nbtString}`.trim();
         
         document.getElementById('commandOutput').textContent = fullCommand;
@@ -876,7 +873,6 @@
         if (el) el.addEventListener('input', generateCommand);
     });
     
-    // Auto-generate on load
     generateCommand();
 </script>
 
