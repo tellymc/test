@@ -6,19 +6,29 @@
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            /* Medium Blue to Lighter Blue Gradient */
             background: linear-gradient(135deg, #2980b9 0%, #6dd5fa 100%); 
             margin: 0; 
             padding: 40px 20px; 
             min-height: 100vh; 
             box-sizing: border-box;
+            display: flex;
+            justify-content: center;
         }
+        
+        .main-wrapper {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+            flex-wrap: wrap;
+            align-items: flex-start; 
+            justify-content: center;
+        }
+
         .container { 
-            max-width: 600px; 
-            margin: 0 auto; 
-            /* 50% Translucent White Box */
+            flex: 1 1 500px;
+            max-width: 600px;
             background: rgba(255, 255, 255, 0.5); 
-            /* Frosted glass blur effect */
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             color: #222; 
@@ -27,6 +37,39 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
             border: 1px solid rgba(255, 255, 255, 0.4);
         }
+
+        .preview-container {
+            flex: 1 1 300px;
+            padding: 30px 0; 
+            overflow-x: auto; 
+            box-sizing: border-box;
+        }
+
+        .mc-tooltip {
+            background-color: rgba(17, 1, 17, 0.95);
+            border: 2px solid #2a0446;
+            border-radius: 12px;
+            padding: 15px;
+            font-family: 'Courier New', Courier, monospace; 
+            font-size: 14px;
+            line-height: 1.5;
+            color: #AAAAAA;
+            box-shadow: inset 0 0 0 2px rgba(17, 1, 17, 0.5), 0 10px 25px rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 0px #000;
+            white-space: pre; /* Keeps the spaces rigid and locked in */
+            width: max-content; 
+            min-width: 250px;
+        }
+
+        .preview-title {
+            color: #fff;
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            position: sticky; 
+            left: 0;
+        }
+
         h2 { color: #111; margin-top: 0; border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 10px; }
         h3 { color: #111; margin-bottom: 10px; margin-top: 25px; }
         label { display: block; margin: 15px 0 5px; font-weight: bold; color: #222; }
@@ -49,6 +92,9 @@
         }
         textarea { height: 80px; resize: vertical; }
         
+        .row { display: flex; gap: 15px; }
+        .row > div { flex: 1; }
+
         .checkbox-group { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
         .checkbox-container { display: flex; align-items: center; }
         .checkbox-container input[type="checkbox"] { margin: 0 10px 0 0; width: auto; cursor: pointer; transform: scale(1.2); }
@@ -65,6 +111,7 @@
             border: 1px solid #111; 
             min-height: 50px; 
             padding-bottom: 50px; 
+            white-space: pre-wrap; 
         }
         .copy-btn { 
             position: absolute; 
@@ -85,108 +132,251 @@
 </head>
 <body>
 
-<div class="container">
-    <h2>Command Generator</h2>
+<div class="main-wrapper">
+    <div class="container">
+        <h2>Command Generator</h2>
 
-    <label for="playerName">Player Name</label>
-    <div class="note">Target selector (e.g., @p, @a) or an exact player name</div>
-    <input type="text" id="playerName" value="@p">
-    
-    <label for="item">Item Name</label>
-    <div class="note">The base Minecraft item ID</div>
-    <input type="text" id="item" value="minecraft:diamond_sword">
-
-    <label for="itemName">Custom Name</label>
-    <div class="note">Use & for color codes (e.g., &cEpic Sword)</div>
-    <input type="text" id="itemName" value="&5Epic Sword">
-
-    <label for="itemLore">Lore (One line per row)</label>
-    <div class="note">Use & for color codes (e.g., &bLine 1)</div>
-    <textarea id="itemLore">&bLine 1 of lore&#10;&aLine 2 of lore</textarea>
-
-    <label for="enchant">Enchantment</label>
-    <select id="enchant">
-        <option value="">None</option>
-        <option value="16" selected>Sharpness (ID: 16)</option>
-        <option value="19">Knockback (ID: 19)</option>
-        <option value="20">Fire Aspect (ID: 20)</option>
-        <option value="34">Unbreaking (ID: 34)</option>
-    </select>
-
-    <label for="level">Enchantment Level</label>
-    <input type="number" id="level" value="5" min="1" max="32767">
-
-    <div class="checkbox-group">
-        <div class="checkbox-container">
-            <input type="checkbox" id="hideFlags" checked>
-            <label for="hideFlags">Hide Enchantment Tooltip (HideFlags: 1)</label>
+        <div class="row">
+            <div>
+                <label for="playerName">Player Name</label>
+                <div class="note">Target (e.g., @p)</div>
+                <input type="text" id="playerName" value="@p">
+            </div>
+            <div>
+                <label for="item">Item Name</label>
+                <div class="note">Base Item ID</div>
+                <input type="text" id="item" value="minecraft:paper">
+            </div>
         </div>
-        <div class="checkbox-container">
-            <input type="checkbox" id="useConsole">
-            <label for="useConsole">Running in Console (Removes /)</label>
+
+        <label for="itemName">Custom Name</label>
+        <div class="note">Use & for color codes (e.g., &cEpic Sword)</div>
+        <input type="text" id="itemName" value="&bHi ezFlex">
+
+        <label for="itemLore">Lore (One line per row)</label>
+        <div class="note">Use & for color codes (e.g., &bLine 1)</div>
+        <textarea id="itemLore">&bLine 1 of lore&#10;&aLine 2 of lore is longer</textarea>
+
+        <div class="row" style="margin-top: 15px;">
+            <div>
+                <label for="enchant">Enchantment</label>
+                <select id="enchant">
+                    <option value="" selected>None</option>
+                    <option value="16">Sharpness (ID: 16)</option>
+                    <option value="19">Knockback (ID: 19)</option>
+                    <option value="20">Fire Aspect (ID: 20)</option>
+                    <option value="34">Unbreaking (ID: 34)</option>
+                </select>
+            </div>
+            <div>
+                <label for="level">Enchant Level</label>
+                <input type="number" id="level" value="5" min="1" max="32767">
+            </div>
+        </div>
+
+        <div class="checkbox-group">
+            <div class="checkbox-container">
+                <input type="checkbox" id="autoCenter" checked>
+                <label for="autoCenter">Auto-Center Lore (Aligns Lore ONLY)</label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="hideFlags" checked>
+                <label for="hideFlags">Hide Enchantment Tooltip (HideFlags: 1)</label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="useConsole">
+                <label for="useConsole">Running in Console (Removes /)</label>
+            </div>
+        </div>
+
+        <h3>Generated Command:</h3>
+        <div class="output-container">
+            <div class="output" id="commandOutput">/give @p ...</div>
+            <button class="copy-btn" onclick="copyCommand()">Copy</button>
         </div>
     </div>
 
-    <h3>Generated Command:</h3>
-    <div class="output-container">
-        <div class="output" id="commandOutput">/give @p ...</div>
-        <button class="copy-btn" onclick="copyCommand()">Copy</button>
+    <div class="preview-container">
+        <h2 class="preview-title">Live Preview</h2>
+        <div class="mc-tooltip" id="mcTooltip">
+            </div>
     </div>
 </div>
 
 <script>
-    const fields = ['playerName', 'item', 'itemName', 'itemLore', 'enchant', 'level', 'hideFlags', 'useConsole'];
+    const fields = ['playerName', 'item', 'itemName', 'itemLore', 'autoCenter', 'enchant', 'level', 'hideFlags', 'useConsole'];
     
+    const colorMap = {
+        '0': '#000000', '1': '#0000AA', '2': '#00AA00', '3': '#00AAAA',
+        '4': '#AA0000', '5': '#AA00AA', '6': '#FFAA00', '7': '#AAAAAA',
+        '8': '#555555', '9': '#5555FF', 'a': '#55FF55', 'b': '#55FFFF',
+        'c': '#FF5555', 'd': '#FF55FF', 'e': '#FFFF55', 'f': '#FFFFFF',
+        'l': 'bold', 'o': 'italic'
+    };
+
+    function stripColors(text) {
+        return text.replace(/&[0-9a-fk-or]/gi, '');
+    }
+
+    // Mathematically exact Minecraft Font Pixel Widths
+    function getMCPixelWidth(text) {
+        const cleanText = stripColors(text);
+        let width = 0;
+        for (let i = 0; i < cleanText.length; i++) {
+            const char = cleanText[i];
+            if (/[ilI!\.,';:\|]/.test(char)) width += 2;
+            else if (/[tfk\s\(\)\[\]<>]/.test(char)) width += 4;
+            else if (/[@~]/.test(char)) width += 7;
+            else width += 6;
+        }
+        return width;
+    }
+
+    function parseToHTML(text, defaultColor = '#AAAAAA') {
+        let html = '';
+        let currentColor = defaultColor;
+        let isBold = false;
+        let isItalic = false;
+
+        const parts = text.split(/(?=&[0-9a-fk-or])/i);
+        
+        parts.forEach(part => {
+            if (part.startsWith('&') && part.length >= 2) {
+                const code = part.charAt(1).toLowerCase();
+                const content = part.substring(2);
+                
+                if (colorMap[code]) {
+                    if (code === 'l') isBold = true;
+                    else if (code === 'o') isItalic = true;
+                    else if (code === 'r') {
+                        currentColor = defaultColor;
+                        isBold = false;
+                        isItalic = false;
+                    }
+                    else {
+                        currentColor = colorMap[code];
+                        isBold = false; 
+                        isItalic = false;
+                    }
+                }
+                
+                let style = `color: ${currentColor};`;
+                if (isBold) style += ' font-weight: bold;';
+                if (isItalic) style += ' font-style: italic;';
+                
+                html += `<span style="${style}">${content.replace(/ /g, '&nbsp;')}</span>`;
+            } else {
+                let style = `color: ${currentColor};`;
+                if (isBold) style += ' font-weight: bold;';
+                if (isItalic) style += ' font-style: italic;';
+                
+                html += `<span style="${style}">${part.replace(/ /g, '&nbsp;')}</span>`;
+            }
+        });
+        return html;
+    }
+
     function generateCommand() {
         const player = document.getElementById('playerName').value || '@p';
-        const item = document.getElementById('item').value || 'minecraft:diamond_sword';
+        const item = document.getElementById('item').value || 'minecraft:paper';
         const rawItemName = document.getElementById('itemName').value;
         const rawLoreLines = document.getElementById('itemLore').value.split('\n').filter(line => line.trim() !== '');
+        
+        const autoCenter = document.getElementById('autoCenter').checked;
         const enchantId = document.getElementById('enchant').value;
         const level = document.getElementById('level').value || '1';
         const hideFlags = document.getElementById('hideFlags').checked;
         const useConsole = document.getElementById('useConsole').checked;
 
-        let nbtParts = [];
+        let processedName = rawItemName;
+        let processedLoreLines = [...rawLoreLines];
 
-        // Display (Name and Lore)
-        let displayParts = [];
-        if (rawItemName) {
-            // Replace all & with §
-            const formattedName = rawItemName.replace(/&/g, '§');
-            displayParts.push(`Name:"${formattedName}"`);
+        if (autoCenter && rawLoreLines.length > 0) {
+            let maxPixelWidth = 0;
+            let longestLineIndex = 0;
+            
+            // Find the true longest line
+            rawLoreLines.forEach((line, index) => {
+                const w = getMCPixelWidth(line);
+                if (w > maxPixelWidth) {
+                    maxPixelWidth = w;
+                    longestLineIndex = index;
+                }
+            });
+
+            // Adjust the longest line to have an even pixel width (adds a space if needed to balance)
+            if (maxPixelWidth % 2 !== 0) {
+                rawLoreLines[longestLineIndex] += ' ';
+                maxPixelWidth += 4; // A space is 4 pixels
+            }
+
+            const padLine = (line) => {
+                const lineWidth = getMCPixelWidth(line);
+                // EXACT MATH: (MaxWidth - LineWidth) / 2 to get left padding pixels.
+                // Divide by 4 because 1 Minecraft space = 4 pixels. 
+                // So dividing by 8 is mathematically perfect!
+                const spacesNeeded = Math.round((maxPixelWidth - lineWidth) / 8); 
+                const padding = ' '.repeat(Math.max(0, spacesNeeded));
+                
+                if (line.match(/^&[0-9a-fk-or]/i)) {
+                    return line.substring(0, 2) + padding + line.substring(2);
+                }
+                return padding + line;
+            };
+
+            processedLoreLines = rawLoreLines.map(line => padLine(line));
         }
-        if (rawLoreLines.length > 0) {
-            // Replace all & with § for each line of lore
-            const formattedLore = rawLoreLines.map(line => `"${line.replace(/&/g, '§')}"`).join(',');
+
+        // --- PREVIEW RENDER ---
+        let tooltipHTML = '';
+        if (rawItemName) {
+            tooltipHTML += `<div>${parseToHTML(rawItemName, '#FFFFFF')}</div>`; 
+        }
+        
+        processedLoreLines.forEach(line => {
+            tooltipHTML += `<div>${parseToHTML(line, '#AA00AA')}</div>`;
+        });
+        
+        if (enchantId !== "" && !hideFlags) {
+            const enchantSelect = document.getElementById('enchant');
+            const enchantName = enchantSelect.options[enchantSelect.selectedIndex].text.split(' (')[0];
+            tooltipHTML += `<div>${parseToHTML(`&7${enchantName} ${level}`)}</div>`;
+        }
+        
+        document.getElementById('mcTooltip').innerHTML = tooltipHTML;
+
+        // --- COMMAND GENERATION ---
+        let nbtParts = [];
+        let displayParts = [];
+        
+        if (processedName) {
+            displayParts.push(`Name:"${processedName.replace(/&/g, '§')}"`);
+        }
+        if (processedLoreLines.length > 0) {
+            const formattedLore = processedLoreLines.map(line => `"${line.replace(/&/g, '§')}"`).join(',');
             displayParts.push(`Lore:[${formattedLore}]`);
         }
         if (displayParts.length > 0) {
             nbtParts.push(`display:{${displayParts.join(',')}}`);
         }
 
-        // Enchantments (Only add if an enchantment is actually selected)
         if (enchantId !== "") {
             nbtParts.push(`ench:[{id:${enchantId},lvl:${level}}]`);
         }
 
-        // Hide Flags
         if (hideFlags) {
             nbtParts.push(`HideFlags:1`);
         }
 
-        // Determine if we need the slash
         const commandPrefix = useConsole ? "give" : "/give";
-
-        // Build the final command
         let nbtString = nbtParts.length > 0 ? `{${nbtParts.join(',')}}` : "";
         const fullCommand = `${commandPrefix} ${player} ${item} 1 0 ${nbtString}`.trim();
         
-        document.getElementById('commandOutput').innerText = fullCommand;
+        document.getElementById('commandOutput').textContent = fullCommand;
     }
 
     function copyCommand() {
-        const commandText = document.getElementById('commandOutput').innerText;
+        const commandText = document.getElementById('commandOutput').textContent;
         navigator.clipboard.writeText(commandText).then(() => {
             const btn = document.querySelector('.copy-btn');
             btn.innerText = 'Copied!';
@@ -196,13 +386,11 @@
         });
     }
 
-    // Listen for inputs to auto-update the command
     fields.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', generateCommand);
     });
     
-    // Generate the initial command on page load
     generateCommand();
 </script>
 
