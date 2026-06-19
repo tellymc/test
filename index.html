@@ -28,14 +28,13 @@
             border: 1px solid rgba(255, 255, 255, 0.4);
         }
         h2 { color: #111; margin-top: 0; border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 10px; }
-        h3 { color: #111; margin-bottom: 10px; }
+        h3 { color: #111; margin-bottom: 10px; margin-top: 25px; }
         label { display: block; margin: 15px 0 5px; font-weight: bold; color: #222; }
         
         input[type="text"], input[type="number"], select, textarea { 
             width: 100%; 
             padding: 10px; 
             box-sizing: border-box; 
-            /* Keeping inputs solid white/gray so they pop against the translucent background */
             background: #fdfdfd; 
             color: #333; 
             border: 1px solid #ccc; 
@@ -50,7 +49,8 @@
         }
         textarea { height: 80px; resize: vertical; }
         
-        .checkbox-container { display: flex; align-items: center; margin: 20px 0; }
+        .checkbox-group { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+        .checkbox-container { display: flex; align-items: center; }
         .checkbox-container input[type="checkbox"] { margin: 0 10px 0 0; width: auto; cursor: pointer; transform: scale(1.2); }
         .checkbox-container label { margin: 0; font-weight: bold; cursor: pointer; color: #222; }
         
@@ -115,9 +115,15 @@
     <label for="level">Enchantment Level</label>
     <input type="number" id="level" value="5" min="1" max="32767">
 
-    <div class="checkbox-container">
-        <input type="checkbox" id="hideFlags" checked>
-        <label for="hideFlags">Hide Enchantment Tooltip (HideFlags: 1)</label>
+    <div class="checkbox-group">
+        <div class="checkbox-container">
+            <input type="checkbox" id="hideFlags" checked>
+            <label for="hideFlags">Hide Enchantment Tooltip (HideFlags: 1)</label>
+        </div>
+        <div class="checkbox-container">
+            <input type="checkbox" id="useConsole">
+            <label for="useConsole">Running in Console (Removes /)</label>
+        </div>
     </div>
 
     <h3>Generated Command:</h3>
@@ -128,7 +134,7 @@
 </div>
 
 <script>
-    const fields = ['playerName', 'item', 'itemName', 'itemLore', 'enchant', 'level', 'hideFlags'];
+    const fields = ['playerName', 'item', 'itemName', 'itemLore', 'enchant', 'level', 'hideFlags', 'useConsole'];
     
     function generateCommand() {
         const player = document.getElementById('playerName').value || '@p';
@@ -138,6 +144,7 @@
         const enchantId = document.getElementById('enchant').value;
         const level = document.getElementById('level').value || '1';
         const hideFlags = document.getElementById('hideFlags').checked;
+        const useConsole = document.getElementById('useConsole').checked;
 
         let nbtParts = [];
 
@@ -165,7 +172,10 @@
             nbtParts.push(`HideFlags:1`);
         }
 
-        const fullCommand = `/give ${player} ${item} 1 0 {${nbtParts.join(',')}}`;
+        // Determine if we need the slash
+        const commandPrefix = useConsole ? "give" : "/give";
+
+        const fullCommand = `${commandPrefix} ${player} ${item} 1 0 {${nbtParts.join(',')}}`;
         document.getElementById('commandOutput').innerText = fullCommand;
     }
 
